@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TaskFlow{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c0e14;
+            --bg-secondary: #111318;
+            --bg-card: #161920;
+            --bg-hover: #1c1f28;
+            --border: #2e3244;
+            --border-light: #3d4260;
+            --text-primary: #f0f2ff;
+            --text-secondary: #a8aec8;
+            --text-muted: #6b7294;
+            --accent: #6b8fff;
+            --accent-hover: #90aaff;
+            --accent-glow: rgba(107, 143, 255, 0.2);
+            --green: #4ade80;
+            --green-bg: rgba(74, 222, 128, 0.12);
+            --amber: #fbbf24;
+            --amber-bg: rgba(251, 191, 36, 0.12);
+            --red: #f87171;
+            --red-bg: rgba(248, 113, 113, 0.12);
+            --purple: #c084fc;
+            --purple-bg: rgba(192, 132, 252, 0.12);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f6fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #f0f1f6;
+            --border: #e2e4ed;
+            --border-light: #c8cad8;
+            --text-primary: #0f1117;
+            --text-secondary: #374060;
+            --text-muted: #6b7280;
+            --accent: #5c7cfa;
+            --accent-hover: #7c96ff;
+            --accent-glow: rgba(92, 124, 250, 0.18);
+            --green: #16a34a;
+            --green-bg: rgba(22, 163, 74, 0.1);
+            --amber: #d97706;
+            --amber-bg: rgba(217, 119, 6, 0.1);
+            --red: #dc2626;
+            --red-bg: rgba(220, 38, 38, 0.1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .site-nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.35rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+
+        .brand .dot {
+            color: var(--accent);
+        }
+
+        .brand:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-pill {
+            color: #a8aec8;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .nav-pill:hover {
+            color: #f0f2ff;
+            background: var(--bg-hover);
+        }
+
+        .nav-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .flash-wrap {
+            position: fixed;
+            top: 4rem;
+            right: 1.5rem;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 280px;
+            max-width: 360px;
+        }
+
+        .flash {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.84rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .flash.success {
+            border-left: 3px solid var(--green);
+        }
+
+        .flash.error {
+            border-left: 3px solid var(--red);
+        }
+
+        .flash.info {
+            border-left: 3px solid var(--accent);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.84rem;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-hover);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.84rem;
+            padding: 0.45rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--border-light);
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #2e3244;
+            color: #a8aec8;
+            border-radius: 7px;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--border-light);
+        }
+
+        .btn-icon.danger:hover {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .form-control,
+        .form-select {
+            background: var(--bg-secondary) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-primary) !important;
+            border-radius: 8px !important;
+            font-size: 0.875rem !important;
+            padding: 0.6rem 0.9rem !important;
+            transition: border-color 0.2s, box-shadow 0.2s !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px var(--accent-glow) !important;
+            outline: none !important;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted) !important;
+        }
+
+        .form-select option {
+            background: var(--bg-secondary);
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 0.4rem;
+        }
+
+        .invalid-feedback {
+            font-size: 0.78rem;
+            color: var(--red);
+        }
+
+        .card-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+        }
+
+        .badge-priority {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .priority-low {
+            background: rgba(133, 140, 168, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .priority-medium {
+            background: var(--accent-glow);
+            color: var(--accent-hover);
+        }
+
+        .priority-high {
+            background: var(--amber-bg);
+            color: var(--amber);
+        }
+
+        .priority-urgent {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            border-radius: 12px 0 0 12px;
+            background: var(--border);
+        }
+
+        .task-card:hover {
+            border-color: var(--border-light);
+            background: var(--bg-hover);
+        }
+
+        .task-card.priority-low::before {
+            background: var(--text-muted);
+        }
+
+        .task-card.priority-medium::before {
+            background: var(--accent);
+        }
+
+        .task-card.priority-high::before {
+            background: var(--amber);
+        }
+
+        .task-card.priority-urgent::before {
+            background: var(--red);
+        }
+
+        .task-card.completed-card {
+            opacity: 0.55;
+        }
+
+        .task-card.completed-card .task-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .task-desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .meta-chip {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            color: #6b7294;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .meta-chip.overdue {
+            color: var(--red);
+        }
+
+        .meta-chip.due-soon {
+            color: var(--amber);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.1rem 1.3rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-light);
+        }
+
+        .stat-value {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6b7294;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            margin-top: 0.3rem;
+        }
+
+        .page-heading {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.7rem;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .page-sub {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            margin-top: 0.2rem;
+        }
+
+        .filter-chip {
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            background: transparent;
+            text-decoration: none;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        .filter-chip:hover,
+        .filter-chip.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .task-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border-light);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            position: relative;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-check:hover {
+            border-color: var(--green);
+            background: var(--green-bg);
+        }
+
+
+        .progress-custom {
+            background: var(--border);
+            border-radius: 99px;
+            height: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            border-radius: 99px;
+            transition: width 0.5s ease;
+        }
+
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-sub {
+            color: var(--text-muted);
+            font-size: 0.83rem;
+            margin-bottom: 2rem;
+        }
+
+        .auth-divider {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .auth-divider::before {
+            left: 0;
+        }
+
+        .auth-divider::after {
+            right: 0;
+        }
+
+        .danger-zone {
+            border: 1px solid var(--red-bg);
+            background: rgba(240, 96, 96, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .btn-danger-confirm {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-danger-confirm:hover {
+            background: #e04040;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.35s ease both;
+        }
+
+        .fade-up-1 {
+            animation-delay: 0.05s;
+        }
+
+        .fade-up-2 {
+            animation-delay: 0.10s;
+        }
+
+        .fade-up-3 {
+            animation-delay: 0.15s;
+        }
+
+        .fade-up-4 {
+            animation-delay: 0.20s;
+        }
+
+        .task-row {
+            animation: fadeUp 0.3s ease both;
+        }
+
+        small.hint {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .main-wrap {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% if user.is_authenticated %}
+    <nav class="site-nav">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a href="{% url 'dashboard' %}" class="brand">TaskFlow<span class="dot">.</span></a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="nav-badge">{{ user.username }}</span>
+                <a href="{% url 'task_create' %}" class="nav-pill"><i class="bi bi-plus"></i> New Task</a>
+                <button onclick="toggleTheme()" class="nav-pill" id="themeBtn"
+                    style="background:transparent;border:none;cursor:pointer">
+                    <i class="bi bi-sun" id="themeIcon"></i>
+                </button>
+                <a href="{% url 'logout' %}" class="nav-pill"><i class="bi bi-box-arrow-right"></i> Sign out</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    {% if messages %}
+    <div class="flash-wrap" id="flashWrap">
+        {% for message in messages %}
+        <div
+            class="flash {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+            <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %}"
+                style="opacity:0.7"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="main-wrap">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        setTimeout(() => {
+            const wrap = document.getElementById('flashWrap');
+            if (wrap) {
+                wrap.style.transition = 'opacity 0.5s';
+                wrap.style.opacity = '0';
+                setTimeout(() => wrap.remove(), 500);
+            }
+        }, 3500);
+    </script>
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const current = localStorage.getItem('theme') || 'dark';
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                icon.className = 'bi bi-moon';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                icon.className = 'bi bi-sun';
+            }
+        }
+        // Apply saved theme on load
+        const saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+    </script>
+</body>
+
+</html>

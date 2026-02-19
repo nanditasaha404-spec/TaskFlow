@@ -1,0 +1,270 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Dashboard — TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex align-items-start justify-content-between mb-4 fade-up">
+        <div>
+            <h1 class="page-heading">Your Tasks</h1>
+            <p class="page-sub mb-0">
+                {% if pending == 0 %}All clear!{% else %}{{ pending }} task{{ pending|pluralize }} remaining{% endif %}
+            </p>
+        </div>
+        <a href="{% url 'task_create' %}" class="btn-accent">
+            <i class="bi bi-plus-lg"></i> Add Task
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3 fade-up fade-up-1">
+            <div class="stat-card">
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 fade-up fade-up-2">
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--green)">{{ completed }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 fade-up fade-up-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--accent)">{{ pending }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 fade-up fade-up-4">
+            <div class="stat-card">
+                {% if overdue > 0 %}
+                <div class="stat-value" style="color:var(--red)">{{ overdue }}</div>
+                {% else %}
+                <div class="stat-value" style="color:var(--text-muted)">{{ overdue }}</div>
+                {% endif %}
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+    </div>
+
+    {% if total > 0 %}
+    <div class="mb-4 fade-up">
+        <div class="row g-3 align-items-center">
+
+            <!-- Progress bar + percentage -->
+            <div class="col-12 col-md-8">
+                <div class="card-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span
+                            style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Overall
+                            Progress</span>
+
+                    </div>
+                    <div class="progress-custom" style="height:8px">
+                        <div class="progress-fill" style="width: {% widthratio completed total 100 %}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="hint">{{ completed }} completed</small>
+                        <small class="hint">{{ pending }} remaining</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut chart -->
+            <div class="col-12 col-md-4">
+                <div class="card-panel d-flex flex-column align-items-center">
+                    <div style="position:relative;width:140px;height:140px;margin:0 auto">
+                        <canvas id="taskChart" width="140" height="140"></canvas>
+                        <div
+                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none">
+                            <span id="chartPct"
+                                style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text-primary);line-height:1.1;font-weight:700"></span>
+                            <span
+                                style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px">completed</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-2">
+                        <span style="font-size:0.75rem;color:var(--green)"><i class="bi bi-circle-fill"
+                                style="font-size:0.5rem"></i> Done</span>
+                        <span style="font-size:0.75rem;color:var(--accent)"><i class="bi bi-circle-fill"
+                                style="font-size:0.5rem"></i> Pending</span>
+                        {% if overdue > 0 %}
+                        <span style="font-size:0.75rem;color:var(--red)"><i class="bi bi-circle-fill"
+                                style="font-size:0.5rem"></i> Overdue</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="d-flex flex-wrap gap-2 mb-4 fade-up">
+        <a href="?status=all&priority={{ filter_priority }}"
+            class="filter-chip {% if filter_status == 'all' %}active{% endif %}">All</a>
+        <a href="?status=active&priority={{ filter_priority }}"
+            class="filter-chip {% if filter_status == 'active' %}active{% endif %}">Active</a>
+        <a href="?status=completed&priority={{ filter_priority }}"
+            class="filter-chip {% if filter_status == 'completed' %}active{% endif %}">Done</a>
+        <span
+            style="width:1px;background:var(--border);margin:0 0.25rem;align-self:stretch;display:inline-block"></span>
+        <a href="?status={{ filter_status }}&priority=all"
+            class="filter-chip {% if filter_priority == 'all' %}active{% endif %}">Any Priority</a>
+        <a href="?status={{ filter_status }}&priority=urgent"
+            class="filter-chip {% if filter_priority == 'urgent' %}active{% endif %}">Urgent</a>
+        <a href="?status={{ filter_status }}&priority=high"
+            class="filter-chip {% if filter_priority == 'high' %}active{% endif %}">High</a>
+        <a href="?status={{ filter_status }}&priority=medium"
+            class="filter-chip {% if filter_priority == 'medium' %}active{% endif %}">Medium</a>
+        <a href="?status={{ filter_status }}&priority=low"
+            class="filter-chip {% if filter_priority == 'low' %}active{% endif %}">Low</a>
+    </div>
+
+    {% if tasks %}
+    <div class="d-flex flex-column gap-2">
+        {% for task in tasks %}
+        <div class="task-card priority-{{ task.priority }} {% if task.completed %}completed-card{% endif %} task-row"
+            style="animation-delay: {{ forloop.counter0 }}0ms">
+            <div class="d-flex align-items-start gap-3">
+                {% if task.completed %}
+                <button type="button" class="task-check checked" data-pk="{{ task.pk }}" data-completed="true"
+                    title="Mark pending" style="background:#16a34a;border-color:#16a34a;position:relative">
+                    <span class="check-icon"
+                        style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-check" style="font-size:13px;font-weight:900;color:#fff;line-height:1"></i>
+                    </span>
+                </button>
+                {% else %}
+                <button type="button" class="task-check" data-pk="{{ task.pk }}" data-completed="false"
+                    title="Mark complete">
+                    <span class="check-icon"></span>
+                </button>
+                {% endif %}
+
+                <div class="flex-grow-1 min-width-0">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <p class="task-title">{{ task.title }}</p>
+                        <span class="badge-priority priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                    </div>
+                    {% if task.description %}
+                    <p class="task-desc">{{ task.description }}</p>
+                    {% endif %}
+                    <div class="task-meta">
+                        <span class="meta-chip">
+                            <i class="bi bi-calendar3"></i>
+                            Created {{ task.created_at|date:"M j" }}
+                        </span>
+                        {% if task.due_date %}
+                        {% if not task.completed and task.due_date < today %} <span class="meta-chip overdue">
+                            <i class="bi bi-clock-fill"></i>
+                            Due {{ task.due_date|date:"M j, Y" }} · Overdue
+                            </span>
+                            {% elif not task.completed and task.due_date == today %}
+                            <span class="meta-chip due-soon">
+                                <i class="bi bi-clock"></i>
+                                Due {{ task.due_date|date:"M j, Y" }} · Today
+                            </span>
+                            {% else %}
+                            <span class="meta-chip">
+                                <i class="bi bi-clock"></i>
+                                Due {{ task.due_date|date:"M j, Y" }}
+                            </span>
+                            {% endif %}
+                            {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <a href="{% url 'task_edit' task.pk %}" class="btn-icon" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'task_delete' task.pk %}" class="btn-icon danger" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+        <p class="empty-title">No tasks yet</p>
+        <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:1.5rem">Add your first task and start getting
+            things done.</p>
+        <a href="{% url 'task_create' %}" class="btn-accent">
+            <i class="bi bi-plus-lg"></i> Add your first task
+        </a>
+    </div>
+    {% endif %}
+
+    {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('taskChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending', 'Overdue'],
+                    datasets: [{
+                        data: [{{ completed }}, {{ pending }}, {{ overdue }}],
+        backgroundColor: ['#40d97b', '#5c7cfa', '#f06060'],
+            borderWidth: 0,
+                hoverOffset: 4
+                }]
+            },
+
+        options: {
+            cutout: '75%',
+                plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = Math.round(context.parsed / total * 100);
+                            return context.label + ': ' + pct + '%';
+                        }
+                    }
+                }
+            },
+            animation: { animateRotate: true, duration: 800 }
+        }
+        });
+        document.getElementById('chartPct').textContent =
+            Math.round({{ completed }} / {{ total }} * 100) + '%';
+    }
+        // AJAX toggle — no page reload
+        document.querySelectorAll('.task-check').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const pk = this.dataset.pk;
+                const csrfToken = '{{ csrf_token }}';
+
+                fetch(`/tasks/${pk}/toggle-ajax/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        const card = this.closest('.task-card');
+                        if (data.completed) {
+                            this.style.background = '#16a34a';
+                            this.style.borderColor = '#16a34a';
+                            this.style.position = 'relative';
+                            this.querySelector('.check-icon').innerHTML = '<i class="bi bi-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;line-height:1"></i>';
+                            card.classList.add('completed-card');
+                        } else {
+                            this.style.background = 'transparent';
+                            this.style.borderColor = 'var(--border-light)';
+                            this.querySelector('.check-icon').innerHTML = '';
+                            card.classList.remove('completed-card');
+                        }
+                    });
+            });
+        });
+    </script>
+    {% endblock %}
+    {% endblock %}
