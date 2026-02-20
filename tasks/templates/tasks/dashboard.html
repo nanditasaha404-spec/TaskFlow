@@ -25,13 +25,13 @@
         </div>
         <div class="col-6 col-md-3 fade-up fade-up-2">
             <div class="stat-card">
-                <div class="stat-value" style="color:var(--green)">{{ completed }}</div>
+                <div class="stat-value" style="color:var(--green)" id="statCompleted">{{ completed }}</div>
                 <div class="stat-label">Completed</div>
             </div>
         </div>
         <div class="col-6 col-md-3 fade-up fade-up-3">
             <div class="stat-card">
-                <div class="stat-value" style="color:var(--accent)">{{ pending }}</div>
+                <div class="stat-value" style="color:var(--accent)" id="statPending">{{ pending }}</div>
                 <div class="stat-label">Pending</div>
             </div>
         </div>
@@ -52,73 +52,122 @@
         <div class="row g-3 align-items-center">
 
             <!-- Progress bar + percentage -->
-            <div class="col-12 col-md-8">
-                <div class="card-panel">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span
-                            style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Overall
-                            Progress</span>
-
-                    </div>
-                    <div class="progress-custom" style="height:8px">
-                        <div class="progress-fill" style="width: {% widthratio completed total 100 %}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-2">
-                        <small class="hint">{{ completed }} completed</small>
-                        <small class="hint">{{ pending }} remaining</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Donut chart -->
-            <div class="col-12 col-md-4">
-                <div class="card-panel d-flex flex-column align-items-center">
-                    <div style="position:relative;width:140px;height:140px;margin:0 auto">
-                        <canvas id="taskChart" width="140" height="140"></canvas>
-                        <div
-                            style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none">
-                            <span id="chartPct"
-                                style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text-primary);line-height:1.1;font-weight:700"></span>
-                            <span
-                                style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px">completed</span>
+            <div class="mb-4 fade-up">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-8">
+                        <div class="card-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span
+                                    style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Overall
+                                    Progress</span>
+                                <span style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--accent)"
+                                    id="progressPct">{{ percentage }}%</span>
+                            </div>
+                            <div class="progress-custom" style="height:8px">
+                                <div class="progress-fill" id="progressFill" style="width: {{ percentage }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="hint" id="progressCompleted">{{ completed }} completed</small>
+                                <small class="hint" id="progressPending">{{ pending }} remaining</small>
+                            </div>
                         </div>
                     </div>
-                    <div class="d-flex gap-3 mt-2">
-                        <span style="font-size:0.75rem;color:var(--green)"><i class="bi bi-circle-fill"
-                                style="font-size:0.5rem"></i> Done</span>
-                        <span style="font-size:0.75rem;color:var(--accent)"><i class="bi bi-circle-fill"
-                                style="font-size:0.5rem"></i> Pending</span>
-                        {% if overdue > 0 %}
-                        <span style="font-size:0.75rem;color:var(--red)"><i class="bi bi-circle-fill"
-                                style="font-size:0.5rem"></i> Overdue</span>
-                        {% endif %}
+                    <!-- Donut chart -->
+                    <div class="col-12 col-md-4">
+                        <div class="card-panel d-flex flex-column align-items-center">
+                            <div style="position:relative;width:140px;height:140px;margin:0 auto">
+                                <canvas id="taskChart" width="140" height="140"></canvas>
+                                <div
+                                    style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none">
+                                    <span id="chartPct"
+                                        style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text-primary);line-height:1.1;font-weight:700"></span>
+                                    <span
+                                        style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px">completed</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-3 mt-2">
+                                <span style="font-size:0.75rem;color:var(--green)"><i class="bi bi-circle-fill"
+                                        style="font-size:0.5rem"></i> Done</span>
+                                <span style="font-size:0.75rem;color:var(--accent)"><i class="bi bi-circle-fill"
+                                        style="font-size:0.5rem"></i> Pending</span>
+                                <span style="font-size:0.75rem;color:var(--red)"><i class="bi bi-circle-fill"
+                                        style="font-size:0.5rem"></i> Overdue</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+
 
         </div>
     </div>
     {% endif %}
 
-    <div class="d-flex flex-wrap gap-2 mb-4 fade-up">
-        <a href="?status=all&priority={{ filter_priority }}"
-            class="filter-chip {% if filter_status == 'all' %}active{% endif %}">All</a>
-        <a href="?status=active&priority={{ filter_priority }}"
-            class="filter-chip {% if filter_status == 'active' %}active{% endif %}">Active</a>
-        <a href="?status=completed&priority={{ filter_priority }}"
-            class="filter-chip {% if filter_status == 'completed' %}active{% endif %}">Done</a>
-        <span
-            style="width:1px;background:var(--border);margin:0 0.25rem;align-self:stretch;display:inline-block"></span>
-        <a href="?status={{ filter_status }}&priority=all"
-            class="filter-chip {% if filter_priority == 'all' %}active{% endif %}">Any Priority</a>
-        <a href="?status={{ filter_status }}&priority=urgent"
-            class="filter-chip {% if filter_priority == 'urgent' %}active{% endif %}">Urgent</a>
-        <a href="?status={{ filter_status }}&priority=high"
-            class="filter-chip {% if filter_priority == 'high' %}active{% endif %}">High</a>
-        <a href="?status={{ filter_status }}&priority=medium"
-            class="filter-chip {% if filter_priority == 'medium' %}active{% endif %}">Medium</a>
-        <a href="?status={{ filter_status }}&priority=low"
-            class="filter-chip {% if filter_priority == 'low' %}active{% endif %}">Low</a>
+    <div class="d-flex flex-wrap gap-3 mb-4 fade-up align-items-center">
+
+        <!-- Search bar -->
+        <form method="get" class="d-flex align-items-center gap-2" style="min-width:200px;max-width:300px;flex-grow:1">
+            <input type="hidden" name="status" value="{{ filter_status }}">
+            <input type="hidden" name="priority" value="{{ filter_priority }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <div style="position:relative;flex:1">
+                <button type="submit"
+                    style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted)">
+                    <i class="bi bi-search" style="font-size:0.85rem"></i>
+                </button>
+                <input type="text" name="search" value="{{ search }}" placeholder="Search tasks..."
+                    style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:0.45rem 2rem 0.45rem 2.1rem;font-size:0.84rem;outline:none"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                {% if search %}
+                <a href="?status={{ filter_status }}&priority={{ filter_priority }}&sort={{ sort }}"
+                    style="position:absolute;right:0.6rem;top:50%;transform:translateY(-50%);color:var(--text-muted);text-decoration:none;font-size:0.85rem">✕</a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- Sort dropdown -->
+        <form method="get" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="status" value="{{ filter_status }}">
+            <input type="hidden" name="priority" value="{{ filter_priority }}">
+            <input type="hidden" name="search" value="{{ search }}">
+            <span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap">Sort by</span>
+            <select name="sort" onchange="this.form.submit()"
+                style="background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:0.4rem 0.7rem;font-size:0.82rem;cursor:pointer;outline:none;min-width:130px">
+                <option value="newest">Latest Added</option>
+                <option value="oldest">Earliest Added</option>
+                <option value="due_date">Due Date</option>
+                <option value="priority">Priority</option>
+                <option value="az">A → Z</option>
+            </select>
+            <script>
+                document.querySelector('select[name="sort"]').value = "{{ sort }}";
+            </script>
+        </form>
+        <!-- Status filters -->
+        <div class="d-flex gap-1 flex-wrap">
+            <a href="?status=all&priority={{ filter_priority }}&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_status == 'all' %}active{% endif %}">All</a>
+            <a href="?status=active&priority={{ filter_priority }}&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_status == 'active' %}active{% endif %}">Active</a>
+            <a href="?status=completed&priority={{ filter_priority }}&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_status == 'completed' %}active{% endif %}">Done</a>
+        </div>
+
+        <!-- Priority filters -->
+        <div class="d-flex gap-1 flex-wrap">
+            <a href="?status={{ filter_status }}&priority=all&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_priority == 'all' %}active{% endif %}">Any</a>
+            <a href="?status={{ filter_status }}&priority=urgent&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_priority == 'urgent' %}active{% endif %}">Urgent</a>
+            <a href="?status={{ filter_status }}&priority=high&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_priority == 'high' %}active{% endif %}">High</a>
+            <a href="?status={{ filter_status }}&priority=medium&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_priority == 'medium' %}active{% endif %}">Medium</a>
+            <a href="?status={{ filter_status }}&priority=low&search={{ search }}&sort={{ sort }}"
+                class="filter-chip {% if filter_priority == 'low' %}active{% endif %}">Low</a>
+        </div>
+
     </div>
 
     {% if tasks %}
@@ -203,9 +252,11 @@
     {% block extra_js %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // ── Chart setup ──
         const ctx = document.getElementById('taskChart');
+        let taskChart;
         if (ctx) {
-            new Chart(ctx, {
+            taskChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Completed', 'Pending', 'Overdue'],
@@ -216,7 +267,6 @@
                 hoverOffset: 4
                 }]
             },
-
         options: {
             cutout: '75%',
                 plugins: {
@@ -224,8 +274,8 @@
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const pct = Math.round(context.parsed / total * 100);
+                            const t = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = Math.round(context.parsed / t * 100);
                             return context.label + ': ' + pct + '%';
                         }
                     }
@@ -237,11 +287,48 @@
         document.getElementById('chartPct').textContent =
             Math.round({{ completed }} / {{ total }} * 100) + '%';
     }
-        // AJAX toggle — no page reload
+
+        // ── Live stats updater ──
+        let completedCount = {{ completed }};
+        let pendingCount = {{ pending }};
+        let totalCount = {{ total }};
+        let overdueCount = {{ overdue }};
+
+        function updateStats(isNowCompleted) {
+            if (isNowCompleted) {
+                completedCount++;
+                pendingCount--;
+            } else {
+                completedCount--;
+                pendingCount++;
+            }
+
+            // Update stat cards
+            document.getElementById('statCompleted').textContent = completedCount;
+            document.getElementById('statPending').textContent = pendingCount;
+
+            // Update progress bar
+            const pct = totalCount > 0 ? Math.round(completedCount / totalCount * 100) : 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressPct').textContent = pct + '%';
+            document.getElementById('progressCompleted').textContent = completedCount + ' completed';
+            document.getElementById('progressPending').textContent = pendingCount + ' remaining';
+
+            // Update donut chart
+            if (taskChart) {
+                taskChart.data.datasets[0].data = [completedCount, pendingCount, overdueCount];
+                taskChart.update();
+                document.getElementById('chartPct').textContent = pct + '%';
+            }
+        }
+
+        // ── AJAX toggle ──
         document.querySelectorAll('.task-check').forEach(btn => {
             btn.addEventListener('click', function () {
                 const pk = this.dataset.pk;
                 const csrfToken = '{{ csrf_token }}';
+                const card = this.closest('.task-card');
+                const btn = this;
 
                 fetch(`/tasks/${pk}/toggle-ajax/`, {
                     method: 'POST',
@@ -249,22 +336,27 @@
                 })
                     .then(res => res.json())
                     .then(data => {
-                        const card = this.closest('.task-card');
                         if (data.completed) {
-                            this.style.background = '#16a34a';
-                            this.style.borderColor = '#16a34a';
-                            this.style.position = 'relative';
-                            this.querySelector('.check-icon').innerHTML = '<i class="bi bi-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;line-height:1"></i>';
+                            btn.style.background = '#16a34a';
+                            btn.style.borderColor = '#16a34a';
+                            btn.style.position = 'relative';
+                            btn.querySelector('.check-icon').innerHTML = '<i class="bi bi-check" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;line-height:1"></i>';
                             card.classList.add('completed-card');
+                            card.querySelector('.task-title').style.textDecoration = 'line-through';
                         } else {
-                            this.style.background = 'transparent';
-                            this.style.borderColor = 'var(--border-light)';
-                            this.querySelector('.check-icon').innerHTML = '';
+                            btn.style.background = 'transparent';
+                            btn.style.borderColor = 'var(--border-light)';
+                            btn.querySelector('.check-icon').innerHTML = '';
                             card.classList.remove('completed-card');
+                            card.querySelector('.task-title').style.textDecoration = 'none';
                         }
+                        updateStats(data.completed);
                     });
             });
         });
+
+        // Sort dropdown set selected
+        document.querySelector('select[name="sort"]').value = "{{ sort }}";
     </script>
     {% endblock %}
     {% endblock %}
